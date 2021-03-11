@@ -6,6 +6,7 @@ This module contains some helper functions for printing actions and boards.
 Feel free to use and/or modify them to help you develop your program.
 """
 
+
 def print_slide(t, r_a, q_a, r_b, q_b, **kwargs):
     """
     Output a slide action for turn t of a token from hex (r_a, q_a)
@@ -134,16 +135,16 @@ def print_board(board_dict, message="", compact=True, ansi=False, **kwargs):
 #                 | -4, 0 | -4, 1 | -4, 2 | -4, 3 | -4, 4 |       |  r, q |
 #                  `-._,-' `-._,-' `-._,-' `-._,-' `-._,-'         `-._,-'"""
     # prepare the provided board contents as strings, formatted to size.
-    ran = range(-4, +4+1)
+    ran = range(-4, +4 + 1)
     cells = []
-    for rq in [(r,q) for r in ran for q in ran if -r-q in ran]:
+    for rq in [(r, q) for r in ran for q in ran if -r - q in ran]:
         if rq in board_dict:
             cell = str(board_dict[rq]).center(5)
             if ansi:
                 # put contents in bold
                 cell = f"\033[1m{cell}\033[0m"
         else:
-            cell = "     " # 5 spaces will fill a cell
+            cell = "     "  # 5 spaces will fill a cell
         cells.append(cell)
     # prepare the message, formatted across multiple lines
     multiline_message = "\n# ".join(message.splitlines())

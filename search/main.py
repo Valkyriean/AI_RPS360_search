@@ -14,18 +14,20 @@ import json
 # then import from them like this:
 from search.util import print_board, print_slide, print_swing
 
-def add_to_out(type,data,out):
+
+def add_to_out(type, data, out):
     if type in data:
         for i in data[type]:
-            out[(i[1],i[2])] = i[0]
+            out[(i[1], i[2])] = i[0]
+
 
 def add_target(role,data):
     role
 
 
 def main():
-    types=["lower","upper","block"]
-    out ={}
+    types = ["lower", "upper", "block"]
+    out = {}
     pa = {}
     ro = {}
     sc = {}
@@ -34,8 +36,8 @@ def main():
             data = json.load(file)
         # put coordinates in dict to print board
         for i in types:
-            add_to_out(i,data,out)
-        print_board(out,"test")
+            add_to_out(i, data, out)
+        print_board(out, "test")
 
     except IndexError:
         print("usage: python3 -m search path/to/input.json", file=sys.stderr)
