@@ -43,6 +43,11 @@ def record_origin(upper_data,pa,ro,sc):
         else:
             pa['origin'] = (i[1], i[2])
 
+def init(data,types,pa,ro,sc,block):
+    add_target(data[types[0]], pa, ro, sc)
+    record_origin(data[types[1]], pa, ro, sc)
+    record_block(data[types[2]], block)
+
 def find_path(token):
     return 0
 
@@ -65,28 +70,6 @@ def main():
     try:
         with open(sys.argv[1]) as file:
             data = json.load(file)
-        # put coordinates in dict to print board
-        for i in types:
-            add_to_out(i, data, out)
-
-        #初始化，每个棋子记录起始点和目标点，记录block的位置
-        add_target(data[types[0]],pa,ro,sc)
-        record_origin(data[types[1]],pa,ro,sc)
-        record_block(data[types[2]],block)
-
-        #寻找路径
-        find_path(pa)
-        find_path(ro)
-        find_path(sc)
-
-        #打印结果
-        print_path(pa)
-        print_path(ro)
-        print_path(sc)
-
-
-
-
     except IndexError:
         print("usage: python3 -m search path/to/input.json", file=sys.stderr)
         sys.exit(1)
@@ -97,3 +80,20 @@ def main():
     # Why not start by trying to print this configuration out using the
     # `print_board` helper function? (See the `util.py` source code for
     # usage information).
+
+    # put coordinates in dict to print board
+    for i in types:
+        add_to_out(i, data, out)
+
+    # 初始化，每个棋子记录起始点和目标点，记录block的位置
+    init(data,types,pa,ro,sc,block)
+
+    # 寻找路径
+    find_path(pa)
+    find_path(ro)
+    find_path(sc)
+
+    # 打印结果
+    print_path(pa)
+    print_path(ro)
+    print_path(sc)
