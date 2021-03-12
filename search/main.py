@@ -55,10 +55,12 @@ def init(data, types, pa, ro, sc, block):
     record_block(data[types[2]], block)
 
 
-#simple slide
+# simple slide
 def find_path(token):
+    if len(token) == 0:
+        return 0
     find = False
-    now = [token['origin'][0],token['origin'][1]]
+    now = [token['origin'][0], token['origin'][1]]
     target = token['target']
     while not find:
         if now[0] == target[0] and now[1] == target[1]:
@@ -95,6 +97,8 @@ def find_path(token):
 
 
 def print_path(token):
+    if len(token) == 0:
+        return 0
     now = token['origin']
     turn = 1
     steps = token['path']
@@ -135,13 +139,13 @@ def main():
 
     # 初始化，每个棋子记录起始点和目标点，记录block的位置
     init(data, types, pa, ro, sc, block)
-    # print(ro)
+
     # 寻找路径
-    # find_path(pa)
+    find_path(pa)
     find_path(ro)
-    # find_path(sc)
+    find_path(sc)
 
     # 打印结果
-    # print_path(pa)
+    print_path(pa)
     print_path(ro)
-    # print_path(sc)
+    print_path(sc)
