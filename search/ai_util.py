@@ -42,7 +42,7 @@ def potential_swing(cur, board_dict):
         if loc in board_dict:
             for token in board_dict[loc]:
                 if token[0] == "upper":
-                    swing_list += (list(set(potential_slide(loc, board_dict))-set(surrounding_list)))
+                    swing_list += (list(set(potential_slide(loc, board_dict)) - set(surrounding_list)))
                     break
     swing_list = list(dict.fromkeys(swing_list))
     swing_list.remove(cur)
@@ -51,9 +51,6 @@ def potential_swing(cur, board_dict):
 
 # 不会重叠所以用当前坐标作为唯一识别
 def move(cur, index, tar, board_dict):
-
-
-
     if board_dict.contain(tar):
         return
         # 吃人
@@ -62,9 +59,28 @@ def move(cur, index, tar, board_dict):
 
 
 # 返回分数 e r(n) = (h(n) + score(n) − score(nParent)) × γ**d
-def get_reward(cur, board_dict, next_board_dict):
+def get_reward(cur, index, board_dict, next_board_dict, potential_move_list):
     # 用推演未来惩罚吃掉队友
+
+    for step in potential_move_list:
+        # 如果在棋盘里说明要么是队友要么是敌人
+        if step in board_dict.keys():
+            for token in board_dict[step]:
+                if token[0] == "lower":
+                    # 可以吃掉敌人, 更新未来棋盘
+                    update_board(cur, step, index, board_dict, next_board_dict)
+
     return
+
+
+def update_board(cur, tar, index, board_dict, next_board_dict):
+    # 更新未来棋盘
+    next_board_dict[tar] = board_dict[cur][index]
+    # 如果原来位置只有一个棋子，则删除这个key，否则就更新value
+    if len(next_board_dict[cur]) == 1:
+        next_board_dict.pop(cur)
+    else:
+        next_board_dict[cur].pop(index)
 
 
 # 返回tar 下一步坐标
@@ -77,5 +93,14 @@ def get_next_move(cur, index, board_dict):
     # for potential_tar in potential_move_list:
     #     get_reward(potential_move_list, future_board_dict)
     #     # 算分， 加入pq
-    return all_moves[random.randint(0, all_moves.len-1)]
+    return all_moves[random.randint(0, len(all_moves) - 1)]
 
+
+# 判断游戏是否胜利，检查棋盘的棋子是否还有lower
+def check_win(board_dict):
+    for tokens_list in board_dict.values():
+        for token in tokens_list:
+            if token[0] == "lower":
+                return False
+
+    return True

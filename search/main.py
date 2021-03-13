@@ -40,8 +40,8 @@ def main():
     au.json_to_dict(data, board_dict)
 
     # while跑到游戏胜利
-
-
+    while not au.check_win(board_dict):
+        print(au.check_win(board_dict))
 
     # 每一个回合
     print(board_dict)
