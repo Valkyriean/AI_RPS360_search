@@ -17,7 +17,7 @@ from search.util import print_board, print_slide, print_swing
 
 
 # key: cur 当前坐标tuple
-# value: [upper/lower, r/s/p/b]
+# value: [[]upper/lower, r/s/p/b],[...]]
 board_dict = {}
 
 
@@ -38,10 +38,17 @@ def main():
     # usage information).
 
     au.json_to_dict(data, board_dict)
-    print(board_dict)
 
-    # for cur, value in board_dict.items():
-    #     if value[0] is "upper":
-    #         best_move = au.get_next_move()
-    #         au.move(cur, best_move)
+    # while跑到游戏胜利
+
+
+
+    # 每一个回合
+    print(board_dict)
+    for cur, token_list in board_dict.items():
+        for token in token_list:
+            if token[0] == "upper":
+                print(cur)
+                # best_move = au.get_next_move()
+                # au.move(cur, best_move)
 
