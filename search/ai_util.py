@@ -51,9 +51,9 @@ def potential_swing(cur, board_dict):
 
 # 不会重叠所以用当前坐标作为唯一识别
 def move(cur, index, tar, board_dict):
-    if board_dict.contain(tar):
-        return
-        # 吃人
+    # if board_dict.contain(tar)
+    # 吃人，更新棋盘（确保已经能吃了）
+    update_board(cur,tar,index,board_dict,board_dict)
     # 输出当前步骤，可以引用util.print_slide
     return
 
@@ -66,21 +66,41 @@ def get_reward(cur, index, board_dict, next_board_dict, potential_move_list):
         # 如果在棋盘里说明要么是队友要么是敌人
         if step in board_dict.keys():
             for token in board_dict[step]:
-                if token[0] == "lower":
+                if token[0] == "lower" and compare_enemy(cur, index, step, board_dict) == 1:
                     # 可以吃掉敌人, 更新未来棋盘
                     update_board(cur, step, index, board_dict, next_board_dict)
 
     return
 
 
+# 假设不会有棋子
 def update_board(cur, tar, index, board_dict, next_board_dict):
     # 更新未来棋盘
-    next_board_dict[tar] = board_dict[cur][index]
+    # 如果走的地方角色相同，就将这个棋子的信息加入list
+    if compare_enemy(cur, index, tar, board_dict) == 0:
+        next_board_dict[tar].append(board_dict[cur][index])
+
+    # 如果是空的或者是能吃掉的直接把目标坐标更新为新的棋子信息（必须要确保能吃掉，这里没有检测能不能吃掉对面）
+    else:
+        next_board_dict[tar] = board_dict[cur][index]
+
     # 如果原来位置只有一个棋子，则删除这个key，否则就更新value
     if len(next_board_dict[cur]) == 1:
         next_board_dict.pop(cur)
     else:
         next_board_dict[cur].pop(index)
+
+
+# 比较棋子判断是否能吃掉，能吃掉返回1，平局返回0，被吃掉返回-1
+def compare_enemy(cur, index, tar, board_dict):
+    token = board_dict[cur][index][1]
+    enemy = board_dict[tar][0][1]
+    if (token == "p" and enemy == "r") or (token == 'r' and enemy == 's') or (token == 's' and enemy == 'p'):
+        return 1
+    elif token == enemy:
+        return 0
+    else:
+        return -1
 
 
 # 返回tar 下一步坐标
@@ -93,7 +113,8 @@ def get_next_move(cur, index, board_dict):
     # for potential_tar in potential_move_list:
     #     get_reward(potential_move_list, future_board_dict)
     #     # 算分， 加入pq
-    return all_moves[random.randint(0, len(all_moves) - 1)]
+
+    # return all_moves[random.randint(0, len(all_moves) - 1)]
 
 
 # 判断游戏是否胜利，检查棋盘的棋子是否还有lower
