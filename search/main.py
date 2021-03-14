@@ -8,7 +8,7 @@ This script contains the entry point to the program (the code in
 
 import sys
 import json
-import ai_util as au
+import search.ai_util as au
 
 # If you want to separate your code into separate files, put them
 # inside the `search` directory (like this one and `util.py`) and
