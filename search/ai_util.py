@@ -4,124 +4,157 @@ import random
 move_vector_list = [(-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0)]
 
 
-# 我们的key (x,y) value: [upper/lower, r/s/p/b]
-# 她的key upper/lower/block value: [[r/s/p, x, y],[...]]
-def json_to_dict(data, board_dict):
-    for faction, token_list in data.items():
-        for token in token_list:
-            token_type = token[0]
-            token_coordinate = (token[1], token[2])
-            board_dict[token_coordinate] = [[faction, token_type]]
+# 记录每个棋子的每一步的走法
+# ("r", [(0,0),(1,0)])
+def data_to_path(data):
+    path_list = []
+    enemy_list = []
+    block_list = []
+    for token in data["upper"]:
+        token_coordinate = (token[1], token[2])
+        path_list.append((token[0],[token_coordinate]))
+    for token in data["lower"]:
+        token_coordinate = (token[1], token[2])
+        enemy_list.append((token[0],token_coordinate))
+    for token in data["block"]:
+        token_coordinate = (token[1], token[2])
+        block_list.append(token_coordinate)
+    return path_list, enemy_list, block_list
 
 
-# 监测输入格子是否可用
-def movable(tar, board_dict):
-    # 走出棋盘
-    if abs(tar[0]) > 4 or abs(tar[1]) > 4:
-        return False
-    # 撞block
-    if tar in board_dict and board_dict[tar][0][0] == "block":
-        return False
-    return True
-
-
-# 返回当前点周围没有出界且不是block的格子
-def potential_slide(cur, board_dict):
-    surrounding_list = []
-    for move_vector in move_vector_list:
-        tar = (cur[0] + move_vector[0], cur[1] + move_vector[1])
-        if movable(tar, board_dict):
-            surrounding_list.append(tar)
-    return surrounding_list
-
-
-def potential_swing(cur, board_dict):
-    swing_list = []
-    surrounding_list = potential_slide(cur, board_dict)
-    for loc in surrounding_list:
-        if loc in board_dict:
-            for token in board_dict[loc]:
-                if token[0] == "upper":
-                    swing_list += (list(set(potential_slide(loc, board_dict)) - set(surrounding_list)))
-                    break
-    swing_list = list(dict.fromkeys(swing_list))
-    swing_list.remove(cur)
-    return swing_list
-
-
-# 不会重叠所以用当前坐标作为唯一识别
-def move(cur, index, tar, board_dict):
-    # if board_dict.contain(tar)
-    # 吃人，更新棋盘（确保已经能吃了）
-    update_board(cur,tar,index,board_dict,board_dict)
-    # 输出当前步骤，可以引用util.print_slide
-    return
-
-
-# 返回分数 e r(n) = (h(n) + score(n) − score(nParent)) × γ**d
-def get_reward(cur, index, board_dict, next_board_dict, potential_move_list):
-    # 用推演未来惩罚吃掉队友
-
-    for step in potential_move_list:
-        # 如果在棋盘里说明要么是队友要么是敌人
-        if step in board_dict.keys():
-            for token in board_dict[step]:
-                if token[0] == "lower" and compare_enemy(cur, index, step, board_dict) == 1:
-                    # 可以吃掉敌人, 更新未来棋盘
-                    update_board(cur, step, index, board_dict, next_board_dict)
-
-    return
-
-
-# 假设不会有棋子
-def update_board(cur, tar, index, board_dict, next_board_dict):
-    # 更新未来棋盘
-    # 如果走的地方角色相同，就将这个棋子的信息加入list
-    if compare_enemy(cur, index, tar, board_dict) == 0:
-        next_board_dict[tar].append(board_dict[cur][index])
-
-    # 如果是空的或者是能吃掉的直接把目标坐标更新为新的棋子信息（必须要确保能吃掉，这里没有检测能不能吃掉对面）
-    else:
-        next_board_dict[tar] = board_dict[cur][index]
-
-    # 如果原来位置只有一个棋子，则删除这个key，否则就更新value
-    if len(next_board_dict[cur]) == 1:
-        next_board_dict.pop(cur)
-    else:
-        next_board_dict[cur].pop(index)
-
-
-# 比较棋子判断是否能吃掉，能吃掉返回1，平局返回0，被吃掉返回-1
-def compare_enemy(cur, index, tar, board_dict):
-    token = board_dict[cur][index][1]
-    enemy = board_dict[tar][0][1]
-    if (token == "p" and enemy == "r") or (token == 'r' and enemy == 's') or (token == 's' and enemy == 'p'):
+# 判断our能不能干死tar
+def can_defeat(our, tar):
+    if (our == "p" and tar == "r") or (our == 'r' and tar == 's') or (our == 's' and tar == 'p'):
         return 1
     elif token == enemy:
         return 0
     else:
         return -1
 
+# 返回可能有的敌人
+def potential_target(token, enemy_list):
+    potential_target_list = []
+    for enemy in data["lower"]:
+        if can_defeat(token[0], enemy[0]) == 1:
+            enemy_coordinate = (token[1], token[2])
+            potential_target_list.append(enemy_coordinate)
+    return potential_target_list
 
-# 返回tar 下一步坐标
-def get_next_move(cur, index, board_dict):
-    # future_board_dict = board_dict.copy()
-
-    potential_slide_list = potential_slide(cur, board_dict)
-    potential_swing_list = potential_swing(cur, board_dict)
-    all_moves = potential_slide_list + potential_swing_list
-    # for potential_tar in potential_move_list:
-    #     get_reward(potential_move_list, future_board_dict)
-    #     # 算分， 加入pq
-
-    # return all_moves[random.randint(0, len(all_moves) - 1)]
-
-
-# 判断游戏是否胜利，检查棋盘的棋子是否还有lower
-def check_win(board_dict):
-    for tokens_list in board_dict.values():
-        for token in tokens_list:
-            if token[0] == "lower":
-                return False
-
+# 监测输入格子是否可用
+def movable(tar, block_list):
+    # 走出棋盘
+    if abs(tar[0]) > 4 or abs(tar[1]) > 4:
+        return False
+    # 撞block
+    if tar in block_list:
+        return False
     return True
+
+
+# 返回当前点周围没有出界且不是block的格子
+def potential_slide(cur, block_list):
+    surrounding_list = []
+    for move_vector in move_vector_list:
+        tar = (cur[0] + move_vector[0], cur[1] + move_vector[1])
+        if movable(tar, block_list):
+            surrounding_list.append(tar)
+    return surrounding_list
+
+
+def potential_move(cur, token, round, path_list, enemy_list, block_list):
+    surrounding_list = potential_slide(cur, block_list)
+    # 把周围的格子放进来
+    move_list = surrounding_list.copy()
+    # 检测那个时候可以芜湖的队友
+    for friendly_token in path_list:
+        if len(friendly_token[1]) < round:
+            continue
+        friendly_pos = friendly_token[1][round]
+        if friendly_pos in surrounding_list:
+            move_list += potential_slide(friendly_pos, block_list)
+    # 去掉可能被敌人干死的位置
+    for enemy in enemy_list:
+        if enemy[1] in swing_list and can_defeat(token[0], enemy[0]) == -1:
+            move_list.remove(enemy[1])
+
+    # 去掉那个时候可能干死或者被干死的队友
+    for friendly_token in path_list:
+        if len(friendly_token[1]) < round:
+            continue
+        friendly_pos = friendly_token[1][round+1]
+        friendly_fire = can_defeat(token[0], friendly_token[0])
+        if friendly_fire != 0 and friendly_pos in move_list:
+            move_list.remove(friendly_pos)
+
+    move_list = list(dict.fromkeys(swing_list))
+    move_list.remove(cur)        
+    return move_list
+
+
+def search(token, target, path_list, enemy_list, block_list):
+    path = []
+    origin = token[1][-1]
+
+    # TODO 搜索算法放这里
+    queue = []
+    queue.append(origin)
+    while queue:
+        path = queue.pop(0)
+        if type(path) == tuple:
+            path = [path]        
+        node = path[-1]
+        if node == target:
+            path.pop[0]
+            return path
+        potential_move_list = potential_move(node, token, len(token[1])+len(path)-2, path_list, enemy_list, block_list)
+        for move in potential_move_list:
+            new_path = path.copy()
+            new_path.append(move)
+            queue.append(new_path)
+    # 不要返回起点 但是要返回终点
+
+
+# token: ("r", [(0,0),(1,0)])
+def build_path(token, path_list, enemy_list, block_list):
+    potential_target_list = potential_target(token, enemy_list)
+    potential_path_list = []
+    for target in potential_target_list:
+        potential_path_list.append(search(token, target, path_list, enemy_list, block_list))
+    chosen = min(potential_path_list, key = len)
+    index = 0
+    for enemy in enemy_list.copy():
+        if enemy[1] == chosen[-1]:
+            enemy_list.pop(index)
+            break
+        index+=1
+    # remove吃掉的敌人
+    return chosen
+
+
+
+
+# 循环每一个友方棋子 并建立路径
+def build_path_list(data):
+    path_list, enemy_list, block_list = data_to_path(data)
+    # 吃到没有敌人可以吃为止
+    while len(enemy_list) > 0:
+        #每个棋子去试图吃一个人, 如果暂时吃不到或者没人可以吃的话就不动
+        for token in path_list:
+            token[1] += build_path(token, path_list, enemy_list, block_list)
+    
+    return path_list
+
+
+
+
+def print_path(path_list):
+    friendly_count = len(path_list)
+    turn = 1
+    while friendly_count > 0:
+        for token in path_list:
+            if len(token[1])
+
+
+
+
+

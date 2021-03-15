@@ -18,8 +18,11 @@ from search.util import print_board, print_slide, print_swing
 
 # key: cur 当前坐标tuple
 # value: [[]upper/lower, r/s/p/b],[...]]
-board_dict = {}
+# board_dict = {}
 
+# 记录每个棋子的每一步的走法
+# ("r", [(0,0),(1,0)])
+# path_list = []
 
 def main():
     try:
@@ -37,18 +40,30 @@ def main():
     # `print_board` helper function? (See the `util.py` source code for
     # usage information).
 
-    au.json_to_dict(data, board_dict)
 
-    # while跑到游戏胜利
-    while not au.check_win(board_dict):
-        print(au.check_win(board_dict))
+    # 循环建立path_list
 
-    # 每一个回合
-    print(board_dict)
-    for cur, token_list in board_dict.items():
-        for token in token_list:
-            if token[0] == "upper":
-                print(cur)
-                # best_move = au.get_next_move()
-                # au.move(cur, best_move)
+    path_list = build_path_list(data)
+
+
+
+
+
+    # 打印出每一步
+    print_path(path_list)
+
+    # au.json_to_dict(data, board_dict)
+
+    # # while跑到游戏胜利
+    # while not au.check_win(board_dict):
+    #     print(au.check_win(board_dict))
+
+    # # 每一个回合
+    # print(board_dict)
+    # for cur, token_list in board_dict.items():
+    #     for token in token_list:
+    #         if token[0] == "upper":
+    #             print(cur)
+    #             # best_move = au.get_next_move()
+    #             # au.move(cur, best_move)
 
