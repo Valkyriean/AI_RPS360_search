@@ -26,7 +26,7 @@ def data_to_path(data):
 def can_defeat(our, tar):
     if (our == "p" and tar == "r") or (our == 'r' and tar == 's') or (our == 's' and tar == 'p'):
         return 1
-    elif token == enemy:
+    elif our == tar:
         return 0
     else:
         return -1
@@ -34,13 +34,14 @@ def can_defeat(our, tar):
 # 返回可能有的敌人
 def potential_target(token, enemy_list):
     potential_target_list = []
-    for enemy in data["lower"]:
+    for enemy in enemy_list:
         if can_defeat(token[0], enemy[0]) == 1:
-            enemy_coordinate = (token[1], token[2])
+            enemy_coordinate = (enemy[1][0], enemy[1][1])
             potential_target_list.append(enemy_coordinate)
     return potential_target_list
 
 # 监测输入格子是否可用
+# TODO 把乱七八糟的检测都放在这里
 def movable(tar, block_list):
     # 走出棋盘
     if abs(tar[0]) > 4 or abs(tar[1]) > 4:
@@ -147,12 +148,12 @@ def build_path_list(data):
 
 
 
-def print_path(path_list):
-    friendly_count = len(path_list)
-    turn = 1
-    while friendly_count > 0:
-        for token in path_list:
-            if len(token[1])
+# def print_path(path_list):
+#     friendly_count = len(path_list)
+#     turn = 1
+#     while friendly_count > 0:
+#         for token in path_list:
+#             if len(token[1])
 
 
 

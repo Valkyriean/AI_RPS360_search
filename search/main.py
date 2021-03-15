@@ -50,7 +50,7 @@ def main():
 
 
     # 打印出每一步
-    print_path(path_list)
+    #print_path(path_list)
 
     # au.json_to_dict(data, board_dict)
 
