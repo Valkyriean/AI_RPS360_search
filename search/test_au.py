@@ -1,7 +1,7 @@
 import unittest
 import ai_util as au
 
-class TestStringMethods(unittest.TestCase):
+class TestAiMethods(unittest.TestCase):
     def test_data_to_path(self):
         data = {"upper": [["r", 0, 0],["r", 0, 1]],
             "lower": [["s", 1, -1]],
