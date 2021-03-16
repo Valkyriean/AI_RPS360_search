@@ -6,20 +6,24 @@ move_vector_list = [(-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0)]
 
 # turn raw data into three list of upper, lower, and blocks
 # ("r", [(0,0),(1,0)])
+
+# friendly_list = [[type, [(start coordinate), ... moving sequence], ...]
+# note that index of moving sequence is the round number or the location token sit on at that round
+# enemy_list = [[type, coordinate, round of death], ...]
 def data_to_path(data):
-    path_list = []
+    friendly_list = []
     enemy_list = []
     block_list = []
     for token in data["upper"]:
         token_coordinate = (token[1], token[2])
-        path_list.append((token[0],[token_coordinate]))
+        friendly_list.append([token[0],[token_coordinate]])
     for token in data["lower"]:
         token_coordinate = (token[1], token[2])
-        enemy_list.append((token[0],token_coordinate))
+        enemy_list.append([token[0],token_coordinate, -1])
     for token in data["block"]:
         token_coordinate = (token[1], token[2])
         block_list.append(token_coordinate)
-    return path_list, enemy_list, block_list
+    return friendly_list, enemy_list, block_list
 
 
 # check if out can eat tar
@@ -61,12 +65,12 @@ def potential_slide(cur, block_list):
     return surrounding_list
 
 
-def potential_move(cur, token, round, path_list, enemy_list, block_list):
+def potential_move(cur, token, round, friendly_list, enemy_list, block_list):
     surrounding_list = potential_slide(cur, block_list)
     # put in potential slide grids
     move_list = surrounding_list.copy()
     # check friendly that we can swing on
-    for friendly_token in path_list:
+    for friendly_token in friendly_list:
         if len(friendly_token[1]) < round:
             continue
         friendly_pos = friendly_token[1][round]
@@ -78,7 +82,7 @@ def potential_move(cur, token, round, path_list, enemy_list, block_list):
             move_list.remove(enemy[1])
 
     # remove the grid that my kill or killed by friendly
-    for friendly_token in path_list:
+    for friendly_token in friendly_list:
         if len(friendly_token[1]) < round:
             continue
         friendly_pos = friendly_token[1][round+1]
@@ -91,7 +95,7 @@ def potential_move(cur, token, round, path_list, enemy_list, block_list):
     return move_list
 
 
-def search(token, target, path_list, enemy_list, block_list):
+def search(token, target, friendly_list, enemy_list, block_list):
     path = []
     origin = token[1][-1]
 
@@ -106,7 +110,7 @@ def search(token, target, path_list, enemy_list, block_list):
         if node == target:
             path.pop[0]
             return path
-        potential_move_list = potential_move(node, token, len(token[1])+len(path)-2, path_list, enemy_list, block_list)
+        potential_move_list = potential_move(node, token, len(token[1])+len(path)-2, friendly_list, enemy_list, block_list)
         for move in potential_move_list:
             new_path = path.copy()
             new_path.append(move)
@@ -115,12 +119,12 @@ def search(token, target, path_list, enemy_list, block_list):
 
 
 # token: ("r", [(0,0),(1,0)])
-def build_path(token, path_list, enemy_list, block_list):
+def build_path(token, friendly_list, enemy_list, block_list):
     potential_target_list = potential_target(token, enemy_list)
-    potential_path_list = []
+    potential_friendly_list = []
     for target in potential_target_list:
-        potential_path_list.append(search(token, target, path_list, enemy_list, block_list))
-    chosen = min(potential_path_list, key = len)
+        potential_friendly_list.append(search(token, target, friendly_list, enemy_list, block_list))
+    chosen = min(potential_friendly_list, key = len)
     index = 0
     # remove eaten enemy
     for enemy in enemy_list.copy():
@@ -134,24 +138,24 @@ def build_path(token, path_list, enemy_list, block_list):
 
 
 # loop through upper tokens and build path for each
-def build_path_list(data):
-    path_list, enemy_list, block_list = data_to_path(data)
+def build_friendly_list(data):
+    friendly_list, enemy_list, block_list = data_to_path(data)
     # loop til no more lower token
     while len(enemy_list) > 0:
         # try find a target to eat, if no target or not accessable at the moment, stay still
-        for token in path_list:
-            token[1] += build_path(token, path_list, enemy_list, block_list)
+        for token in friendly_list:
+            token[1] += build_path(token, friendly_list, enemy_list, block_list)
     
-    return path_list
+    return friendly_list
 
 
 
 
-# def print_path(path_list):
-#     friendly_count = len(path_list)
+# def print_path(friendly_list):
+#     friendly_count = len(friendly_list)
 #     turn = 1
 #     while friendly_count > 0:
-#         for token in path_list:
+#         for token in friendly_list:
 #             if len(token[1])
 
 
