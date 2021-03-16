@@ -23,7 +23,18 @@ class TestAiMethods(unittest.TestCase):
         enemy_list2 = [('r', (2, 2)), ('s', (3, -3)), ('p', (1,3)), ('s', (-2, 0))]
         self.assertEqual(au.potential_target(token, enemy_list1), [(3 , -3)])
         self.assertEqual(au.potential_target(token, enemy_list2), [(3, -3), (-2, 0)])
+    def test_potential_slide(self):
+        cur = (0,0)
+        b = [(1,0),(1,-1),(-1,0),(0,-1),(-1,1),(0,1)]
+        self.assertEqual(au.potential_slide(cur,b),[])
 
+    def test_potential_move(self):
+        cur = (0,0)
+        token = ('r',(0,0))
+        b = []
+        e = [('r',(0,1)),('s',(0,-1)),('p',(1,0))]
+        p = [(1,0),(1,-1),(-1,0),(0,-1),(-1,1),(0,1)]
+        self.assertEqual(au.potential_move(cur,token,1,p,e,b),[])
 
 if __name__ == '__main__':
     unittest.main()
