@@ -22,7 +22,7 @@ from search.util import print_board, print_slide, print_swing
 
 # 记录每个棋子的每一步的走法
 # ("r", [(0,0),(1,0)])
-# path_list = []
+# friendly_list = []
 
 def main():
     try:
@@ -42,14 +42,14 @@ def main():
 
 
 
-    path_list = au.build_path_list(data)
+    friendly_list = au.build_friendly_list(data)
 
 
 
 
 
     # print every path
-    #print_path(path_list)
+    #print_path(friendly_list)
 
     # au.json_to_dict(data, board_dict)
 

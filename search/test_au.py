@@ -6,9 +6,9 @@ class TestAiMethods(unittest.TestCase):
         data = {"upper": [["r", 0, 0],["r", 0, 1]],
             "lower": [["s", 1, -1]],
             "block": [["", 1, 0]]}
-        path_list, enemy_list, block_list = au.data_to_path(data)
-        self.assertEqual(path_list, [('r', [(0, 0)]), ('r', [(0, 1)])])
-        self.assertEqual(enemy_list, [('s', (1, -1))])
+        friendly_list, enemy_list, block_list = au.data_to_path(data)
+        self.assertEqual(friendly_list, [['r', [(0, 0)]], ['r', [(0, 1)]]])
+        self.assertEqual(enemy_list, [['s', (1, -1),-1]])
         self.assertEqual(block_list, [(1,0)])
 
     def test_can_defeat(self):
