@@ -41,15 +41,14 @@ def main():
     # usage information).
 
 
-    # 循环建立path_list
 
-    path_list = build_path_list(data)
-
+    path_list = au.build_path_list(data)
 
 
 
 
-    # 打印出每一步
+
+    # print every path
     #print_path(path_list)
 
     # au.json_to_dict(data, board_dict)
