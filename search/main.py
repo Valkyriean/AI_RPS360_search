@@ -33,36 +33,8 @@ def main():
         sys.exit(1)
 
 
-    # TODO
-    # Find and print a solution to the board configuration described
-    # by `data`.
-    # Why not start by trying to print this configuration out using the
-    # `print_board` helper function? (See the `util.py` source code for
-    # usage information).
 
-
-
-    friendly_list = au.build_friendly_list(data)
-
-
-
-
-
-    # print every path
-    #print_path(friendly_list)
-
-    # au.json_to_dict(data, board_dict)
-
-    # # while跑到游戏胜利
-    # while not au.check_win(board_dict):
-    #     print(au.check_win(board_dict))
-
-    # # 每一个回合
-    # print(board_dict)
-    # for cur, token_list in board_dict.items():
-    #     for token in token_list:
-    #         if token[0] == "upper":
-    #             print(cur)
-    #             # best_move = au.get_next_move()
-    #             # au.move(cur, best_move)
+    friendly_list, enemy_list, block_list = au.eat_enemy(data)
+    max_round = au.makeup_rest(friendly_list, enemy_list, block_list)
+    au.print_path(max_round, friendly_list, enemy_list, block_list)
 

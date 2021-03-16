@@ -1,6 +1,7 @@
-a = [1,2,4]
-b = [1,2,3,2]
-c = [a,b]
+a = [(1,2),(4,4),(1,2)]
+b = a.copy()
+b.append(5)
 
-
-print(list(set(b) - set(a)))
+print(a)
+print(list(set(a)))
+# 1
