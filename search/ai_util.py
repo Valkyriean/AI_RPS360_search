@@ -88,9 +88,9 @@ def remove_enemy_kill(token_type, cur_round, enemy_list, potential_move_list):
 
 def remove_friendly_kill(token_type, cur_round, friendly_list, potential_move_list):
     for friendly in friendly_list:
-        if len(friendly['path']) - 1 < cur_round:
+        if len(friendly['path']) - 1 <= cur_round:
             continue
-        friendly_pos = friendly['path'][cur_round]
+        friendly_pos = friendly['path'][cur_round + 1]
         friendly_fire = can_defeat(token_type, friendly['type'])
         if friendly_fire != 0 and friendly_pos in potential_move_list:
             potential_move_list.remove(friendly_pos)
@@ -129,14 +129,13 @@ def search(token, target, friendly_list, enemy_list, block_list):
     while queue:
         path = queue.pop(0)
         if len(path) > budget:
-            print(token)
             return path, False
         if type(path) == tuple:
             path = [path]        
         node = path[-1]
         if node == target:
-            
-            return path, True
+            path.pop(0)
+            return path,True
         cur_round = len(token['path']) + len(path) - 2
         potential_move_list = potential_move(node, token_type, cur_round, friendly_list, enemy_list, block_list)
         for move in potential_move_list:
@@ -144,6 +143,7 @@ def search(token, target, friendly_list, enemy_list, block_list):
             new_path.append(move)
             queue.append(new_path)
     # do not include start point but the finishing point
+    return None,False
 
 
 def build_path(token, friendly_list, enemy_list, block_list):
@@ -153,16 +153,14 @@ def build_path(token, friendly_list, enemy_list, block_list):
     chosen = []
     killed_enemy = {}
     for target in potential_target_list:
-        path, killed = search(token, target['cord'], friendly_list, enemy_list, block_list)
+        path,killed = search(token, target['cord'], friendly_list, enemy_list, block_list)
         if len(path) < min_cost:
             chosen = path
-            min_cost = len(path) - 1 
+            min_cost = len(path)
             if killed:
                 killed_enemy = target
     if killed_enemy:
         killed_enemy['death_round'] = min_cost + len(token['path']) - 1
-    if chosen:
-        chosen.pop(0)
     return chosen
 
 
