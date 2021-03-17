@@ -145,7 +145,7 @@ def search(token, target, friendly_list, enemy_list, block_list):
     # do not include start point but the finishing point
     return None,False
 
-
+# TODO change this to only return one step
 def build_path(token, friendly_list, enemy_list, block_list):
     potential_target_list = potential_target(token, enemy_list)
     potential_path_list = []
@@ -165,7 +165,7 @@ def build_path(token, friendly_list, enemy_list, block_list):
 
 
 
-
+# TODO move token in good order for one step
 # loop through upper tokens and build path for each
 def eat_enemy(data):
     friendly_list, enemy_list, block_list = data_to_path(data)
