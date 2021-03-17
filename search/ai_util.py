@@ -1,6 +1,6 @@
 import random
 import search.util as u
-
+import token as T
 # moving vector
 move_vector_list = [(-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0)]
 
@@ -17,31 +17,22 @@ def data_to_path(data):
     block_list = []
     for token in data["upper"]:
         token_coordinate = (token[1], token[2])
-        friendly_list.append({'type': token[0],'path': [token_coordinate]})
+        friendly_list.append(T.Friendly(token[0], token_coordinate))
     for token in data["lower"]:
         token_coordinate = (token[1], token[2])
-        enemy_list.append({'type': token[0],'cord': token_coordinate, 'death_round': -1})
+        enemy_list.append(T.Enemy(token[0], token_coordinate))
     for token in data["block"]:
         token_coordinate = (token[1], token[2])
-        block_list.append(token_coordinate)
+        block_list.append(token.Block(T.Block(token_coordinate)))
     return friendly_list, enemy_list, block_list
 
 
-# check if out can eat tar
-def can_defeat(our, tar):
-    if (our == "p" and tar == "r") or (our == 'r' and tar == 's') or (our == 's' and tar == 'p'):
-        return 1
-    elif our == tar:
-        return 0
-    else:
-        return -1
 
 # return a list of potential target that can be eaten
 def potential_target(token, enemy_list):
-    current_round = len(token['path']) - 1
     potential_target_list = []
     for enemy in enemy_list:
-        if can_defeat(token['type'], enemy['type']) == 1 and enemy['death_round'] == -1:
+        if token.can_defeat(enemy):
             potential_target_list.append(enemy)
     return potential_target_list
 
@@ -55,13 +46,11 @@ def potential_slide(cur):
     return surrounding_list
 
 
-def potential_swing(cur, cur_round, friendly_list):
+def potential_swing(cur, friendly_list):
     surrounding_list = potential_slide(cur)
     swing_list = []
     for friendly in friendly_list:
-        if len(friendly['path']) - 1 < cur_round:
-            continue
-        friendly_pos = friendly['path'][cur_round]
+        friendly_pos = friendly.path[-1]
         if friendly_pos in surrounding_list:
             swing_list += potential_slide(friendly_pos)
     return swing_list
@@ -73,35 +62,32 @@ def remove_out_bound(potential_move_list):
 
 def remove_on_block(block_list, potential_move_list):
     for block in block_list:
-        if block in potential_move_list:
+        if block.cord in potential_move_list:
             potential_move_list.remove(block)
 
 
-def remove_enemy_kill(token_type, cur_round, enemy_list, potential_move_list):
+def remove_enemy_kill(token, enemy_list, potential_move_list):
     for enemy in enemy_list:
-        enemy_lives = (enemy['death_round'] == -1) or (enemy['death_round'] > cur_round)
-        hit_enemy = enemy['cord'] in potential_move_list
-        killed_by_enemy = can_defeat(token_type, enemy['type']) == -1
-        if enemy_lives and hit_enemy and killed_by_enemy:
-            potential_move_list.remove(enemy['cord'])
+        hit_enemy = enemy.cord in potential_move_list
+        killed_by_enemy = token.can_defeat(enemy['type']) == -1
+        if enemy.active and hit_enemy and killed_by_enemy:
+            potential_move_list.remove(enemy.cord)
 
 
-def remove_friendly_kill(token_type, cur_round, friendly_list, potential_move_list):
+def remove_friendly_kill(token, friendly_list, potential_move_list):
     for friendly in friendly_list:
-        if len(friendly['path']) - 1 <= cur_round:
-            continue
-        friendly_pos = friendly['path'][cur_round + 1]
-        friendly_fire = can_defeat(token_type, friendly['type'])
+        friendly_pos = friendly.path[-1]
+        friendly_fire = token.can_defeat(friendly)
         if friendly_fire != 0 and friendly_pos in potential_move_list:
             potential_move_list.remove(friendly_pos)
 
 
-def potential_move(cur, token_type, cur_round, friendly_list, enemy_list, block_list):
+def potential_move(cur, token, friendly_list, enemy_list, block_list):
     potential_move_list = []
     # add slide
     potential_move_list += potential_slide(cur)
     # add swing
-    potential_move_list += potential_swing(cur, cur_round, friendly_list)
+    potential_move_list += potential_swing(cur, friendly_list)
     # remove replic
     potential_move_list = list(set(potential_move_list))
     if cur in potential_move_list:
@@ -111,16 +97,16 @@ def potential_move(cur, token_type, cur_round, friendly_list, enemy_list, block_
     # remove step on block
     remove_on_block(block_list, potential_move_list)
     # remove killed by enemy
-    remove_enemy_kill(token_type, cur_round, enemy_list, potential_move_list)
+    remove_enemy_kill(token, enemy_list, potential_move_list)
     # remove killed by friendly
-    remove_friendly_kill(token_type, cur_round, friendly_list, potential_move_list)     
+    remove_friendly_kill(token, friendly_list, potential_move_list)
     return potential_move_list
 
 
 def search(token, target, friendly_list, enemy_list, block_list):
     path = []
-    origin = token['path'][-1]
-    token_type = token['type']
+    origin = token.path[-1]
+    token_type = token.symbol
 
     # TODO subtitute with a*
     budget = 100
@@ -136,8 +122,8 @@ def search(token, target, friendly_list, enemy_list, block_list):
         if node == target:
             path.pop(0)
             return path,True
-        cur_round = len(token['path']) + len(path) - 2
-        potential_move_list = potential_move(node, token_type, cur_round, friendly_list, enemy_list, block_list)
+        cur_round = len(token.path) + len(path) - 2
+        potential_move_list = potential_move(node, token_type, friendly_list, enemy_list, block_list)
         for move in potential_move_list:
             new_path = path.copy()
             new_path.append(move)
@@ -153,14 +139,14 @@ def build_path(token, friendly_list, enemy_list, block_list):
     chosen = []
     killed_enemy = {}
     for target in potential_target_list:
-        path,killed = search(token, target['cord'], friendly_list, enemy_list, block_list)
+        path,killed = search(token, target.cord, friendly_list, enemy_list, block_list)
         if len(path) < min_cost:
             chosen = path
             min_cost = len(path)
             if killed:
                 killed_enemy = target
     if killed_enemy:
-        killed_enemy['death_round'] = min_cost + len(token['path']) - 1
+        killed_enemy.active = False
     return chosen
 
 
@@ -174,10 +160,10 @@ def eat_enemy(data):
     while win == False:
         # try find a target to eat, if no target or not accessable at the moment, stay still
         for token in friendly_list:
-            token['path'] += build_path(token, friendly_list, enemy_list, block_list)
+            token.path += build_path(token, friendly_list, enemy_list, block_list)
         win = True
         for enemy in enemy_list:
-            if enemy['death_round'] == -1:
+            if enemy.active:
                 win = False
     return friendly_list, enemy_list, block_list
 
@@ -186,7 +172,7 @@ def makeup_rest(friendly_list, enemy_list, block_list):
     max_round = -1
     for enemy in enemy_list:
         cur_round = enemy['death_round']
-        if cur_round - 1 > max_round:
+        if cur_round > max_round:
             max_round = cur_round
 
     for friendly in friendly_list:
@@ -204,8 +190,8 @@ def print_path(max_round, friendly_list, enemy_list, block_list):
     for i in range(1,max_round + 1):
         list_to_dict(i, friendly_list, enemy_list, block_list)
         for friendly in friendly_list:
-            last_cord = friendly['path'][i - 1]
-            cur_cord = friendly['path'][i]
+            last_cord = friendly.path[i - 1]
+            cur_cord = friendly.path[i]
             if cur_cord in potential_slide(last_cord):
                 u.print_slide(i, last_cord[0], last_cord[1], cur_cord[0], cur_cord[1])
             else:
@@ -216,7 +202,7 @@ def print_path(max_round, friendly_list, enemy_list, block_list):
 def list_to_dict(i, friendly_list, enemy_list, block_list):
     board_dict = {}
     for friendly in friendly_list:
-        cord = friendly['path'][i]
+        cord = friendly.path[i]
         if(cord in board_dict):
             board_dict[cord] += friendly['type'].upper()
         else:
