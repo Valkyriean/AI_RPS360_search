@@ -8,12 +8,15 @@ This script contains the entry point to the program (the code in
 
 import sys
 import json
-import search.ai_util as au
+import time
+
 
 # If you want to separate your code into separate files, put them
 # inside the `search` directory (like this one and `util.py`) and
 # then import from them like this:
+
 from search.util import print_board, print_slide, print_swing
+from search.game import Game
 
 
 # key: cur 当前坐标tuple
@@ -25,6 +28,7 @@ from search.util import print_board, print_slide, print_swing
 # friendly_list = []
 
 def main():
+    start_time = time.time()
     try:
         with open(sys.argv[1]) as file:
             data = json.load(file)
@@ -33,8 +37,14 @@ def main():
         sys.exit(1)
 
 
-
-    friendly_list, enemy_list, block_list = au.eat_enemy(data)
-    max_round = au.makeup_rest(friendly_list, enemy_list, block_list)
-    au.print_path(max_round, friendly_list, enemy_list, block_list)
+    # game loop
+    game = Game(data)
+    # loop til no more lower token
+    while game.game_over() == False:
+        # try find a target to eat, if no target or not accessable at the moment, stay still
+        state = game.turn_update()
+        if state == -1:
+            return -1
+    print("--- %s seconds ---" % (time.time() - start_time))
+    return 0
 

@@ -1,7 +1,8 @@
-a = [(1,2),(4,4),(1,2)]
-b = a.copy()
-b.append(5)
+from itertools import permutations
+from collections import deque
 
-print(a)
-print(list(set(a)))
-# 1
+order_list = permutations(range(0, 3) , 3)
+d = {1:4,2:1}
+return(sorted(d.items(), key=lambda d:d[1], reverse=True))
+
+print(deque(order_list))
