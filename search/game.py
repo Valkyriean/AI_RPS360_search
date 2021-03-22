@@ -42,7 +42,7 @@ class Game():
     def get_order_list(self):
         return list(permutations(range(0, self.num_friendly()) , self.num_friendly()))
 
-
+    # Act all upper tokens in order, return -1 if one token have no valid move
     def act_all(self, order):
         for i in order:
             state = self.friendly_list[i].act(self)

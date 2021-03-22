@@ -1,5 +1,5 @@
 import random
-
+from queue import PriorityQueue
 
 class Token:
     def __init__(self, symbol, cord):
@@ -30,8 +30,8 @@ class Friendly(Token):
         else:
             return -1
 
-    def dist_to(self, enemy):
-        (r_o, q_o) = self.cord
+    def dist_to(cord, enemy):
+        (r_o, q_o) = cord
         (r_e, q_e) = enemy.cord
         return abs(r_o - r_e) + abs(q_o - q_e)
 
@@ -40,7 +40,7 @@ class Friendly(Token):
         nearest_enemy = None
         for enemy in game.enemy_list:
             if enemy.active and self.can_defeat(enemy) == 1:
-                dist = self.dist_to(enemy)
+                dist = Friendly.dist_to(self.cord, enemy)
                 if min_dist == None or dist < min_dist:
                     nearest_enemy = enemy
                     min_dist = dist
@@ -92,13 +92,13 @@ class Friendly(Token):
 
 
 
-
-    def potential_move(self, cord, game):
+    def potential_move(self, accurate, cord, game):
         self.potential_move_list = []
         # add slide
         self.potential_move_list += self.potential_slide(cord)
-        # add swing
-        self.potential_move_list += self.potential_swing(cord, game)
+        if accurate:
+            # add swing
+            self.potential_move_list += self.potential_swing(cord, game)
          # remove replic
         self.potential_move_list = list(set(self.potential_move_list))
         if self.cord in self.potential_move_list:
@@ -109,28 +109,14 @@ class Friendly(Token):
         self.remove_on_block(game)
         # remove killed by enemy
         self.remove_enemy_kill(game)
-        # remove killed by friendly
-        self.remove_friendly_fire(game)
+        if accurate:
+            # remove killed by friendly
+            self.remove_friendly_fire(game)
     
-
-    def potential_future_move(self, cord, game):
-        self.potential_move_list = []
-        # add slide
-        self.potential_move_list += self.potential_slide(cord)
-        # remove replic
-        self.potential_move_list = list(set(self.potential_move_list))
-
-        # remove out of bound
-        self.remove_out_bound()
-        # remove step on block
-        self.remove_on_block(game)
-        # remove killed by enemy
-        self.remove_enemy_kill(game)
-        # remove killed by friendly
 
     def random_move(self, game):
         # try kill self first
-        self.potential_move(self.cord, game)
+        self.potential_move(True, self.cord, game)
         if len(self.potential_move_list) == 0:
             # dead end
             return -1
@@ -142,22 +128,19 @@ class Friendly(Token):
     def next_move(self, game):
         path = []
         budget = 10
-        queue = []
+        pq = PriorityQueue()
         node = self.cord
-        if node == self.target.cord:
-            # found
-            game.next_move_dict[self] = path[1]
-            return 0
-        self.potential_move(node, game)
 
+        self.potential_move(True, node, game)
         for move in self.potential_move_list:
-                new_path = path.copy()
-                new_path.append(move)
-                queue.append(new_path)
-        while queue:
-            path = queue.pop(0)
+                new_path = [move]
+                priority = 1 + Friendly.dist_to(move, self.target)
+                pq.put((priority, new_path))
+        
+        while not pq.empty():
+            path = pq.get()[1]
             if len(path) > budget:
-
+                print("random\n")
                 # over budget may be a five
                 self.random_move(game)
                 return 1       
@@ -166,17 +149,20 @@ class Friendly(Token):
                 # found
                 game.next_move_dict[self] = path[0]
                 return 0
-            self.potential_future_move(node, game)
+            self.potential_move(False, node, game)
             for move in self.potential_move_list:
                 new_path = path.copy()
                 new_path.append(move)
-                queue.append(new_path)
+                priority = len(new_path) + Friendly.dist_to(move, self.target)
+                pq.put((priority, new_path))
         # dead end
         return -1
 
 
 
     def act(self, game):
+        if self.active == False:
+            return 0
         if self.five == True:
             return self.random_move(game)
         else:

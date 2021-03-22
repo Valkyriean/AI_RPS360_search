@@ -1,8 +1,9 @@
-from itertools import permutations
-from collections import deque
+from queue import PriorityQueue
 
-order_list = permutations(range(0, 3) , 3)
-d = {1:4,2:1}
-return(sorted(d.items(), key=lambda d:d[1], reverse=True))
+pq = PriorityQueue()
+pq.put((1,"a"))
+pq.put((3,"b"))
+pq.put((2,"c"))
 
-print(deque(order_list))
+while not pq.empty():
+    print(pq.get()[1])
