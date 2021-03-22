@@ -54,11 +54,12 @@ class Game():
     def print_game(self):
         board_dict = {}
         for friendly in self.friendly_list:
-            cord = friendly.cord
-            if(cord in board_dict):
-                board_dict[cord] += friendly.symbol.upper()
-            else:
-                board_dict[cord] = friendly.symbol.upper()
+            if friendly.active:
+                cord = friendly.cord
+                if(cord in board_dict):
+                    board_dict[cord] += friendly.symbol.upper()
+                else:
+                    board_dict[cord] = friendly.symbol.upper()
         for enemy in self.enemy_list:
             if enemy.active:
                 cord = enemy.cord
@@ -83,12 +84,16 @@ class Game():
                 print_swing(self.turn,r_a, q_a,r_b, q_b)
             token.cord = move
             for enemy in self.enemy_list:
-                if enemy.active and token.cord == enemy.cord and token.can_defeat(enemy) == 1:
-                    enemy.active = False
+                if enemy.active and token.cord == enemy.cord:
+                    if token.can_defeat(enemy) == 1:
+                        enemy.active = False
+                    elif token.can_defeat(enemy) == -1:
+                        token.active = False
+            for friendly, friendly_move in self.next_move_dict.items():
+                if token != friendly and move == friendly_move:
+                    if token.can_defeat(friendly) == -1:
+                        token.active = False
         self.print_game()
-
-
-
         self.next_move_dict = {}
 
     def turn_update(self):
@@ -103,4 +108,5 @@ class Game():
             if state == 0:
                 self.apply_move()
                 return 0
+            self.next_move_dict = {}
         return -1

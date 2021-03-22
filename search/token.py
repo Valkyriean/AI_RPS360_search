@@ -78,6 +78,8 @@ class Friendly(Token):
                 self.potential_move_list.remove(block.cord)
 
     def remove_enemy_kill(self, game):
+        if self.five == True:
+            return
         for enemy in game.enemy_list:
             hit_enemy = enemy.cord in self.potential_move_list
             killed_by_enemy = self.can_defeat(enemy) == -1
@@ -87,9 +89,11 @@ class Friendly(Token):
 
     def remove_friendly_fire(self, game):
         for friendly, cord in game.next_move_dict.items():
-            if self.can_defeat(friendly) != 0 and cord in self.potential_move_list:
-                self.potential_move_list.remove(cord)            
-
+            if cord in self.potential_move_list:
+                if self.can_defeat(friendly) == 1:
+                    self.potential_move_list.remove(cord)            
+                elif self.five == False and self.can_defeat(friendly) == -1:
+                    self.potential_move_list.remove(cord)
 
 
     def potential_move(self, accurate, cord, game):
@@ -140,7 +144,6 @@ class Friendly(Token):
         while not pq.empty():
             path = pq.get()[1]
             if len(path) > budget:
-                print("random\n")
                 # over budget may be a five
                 self.random_move(game)
                 return 1       
