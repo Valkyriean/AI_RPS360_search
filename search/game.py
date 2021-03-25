@@ -1,3 +1,4 @@
+# writen by Lingyuan Jin ID:1020657 and Jiachen Li 1068299
 from itertools import permutations
 from search.util import print_slide, print_swing, print_board
 from search.token import Friendly, Enemy, Block

@@ -1,6 +1,13 @@
+# writen by Lingyuan Jin ID:1020657 and Jiachen Li 1068299
 import random
 from queue import PriorityQueue
 
+
+# calculate the Euclidean distance of two tokens
+def dist_to(self, enemy):
+    (r_o, q_o) = self
+    (r_e, q_e) = enemy.cord
+    return max(abs(r_e - r_o), abs(q_e - q_o), abs(q_o - q_e + r_o - r_e))
 
 class Token:
     def __init__(self, symbol, cord):
@@ -33,11 +40,6 @@ class Friendly(Token):
         else:
             return -1
 
-    # calculate the Euclidean distance of two tokens
-    def dist_to(self, enemy):
-        (r_o, q_o) = self
-        (r_e, q_e) = enemy.cord
-        return abs(r_o - r_e) + abs(q_o - q_e)
 
     # find the nearest lower token which can defeat
     def get_next_target(self, game):
@@ -45,7 +47,7 @@ class Friendly(Token):
         nearest_enemy = None
         for enemy in game.enemy_list:
             if enemy.active and self.can_defeat(enemy) == 1:
-                dist = Friendly.dist_to(self.cord, enemy)
+                dist = dist_to(self.cord, enemy)
                 if min_dist is None or dist < min_dist:
                     nearest_enemy = enemy
                     min_dist = dist
@@ -113,8 +115,8 @@ class Friendly(Token):
             self.potential_move_list += self.potential_swing(cord, game)
         # remove repetition
         self.potential_move_list = list(set(self.potential_move_list))
-        if self.cord in self.potential_move_list:
-            self.potential_move_list.remove(self.cord)
+        if cord in self.potential_move_list:
+            self.potential_move_list.remove(cord)
         # remove out of bound
         self.remove_out_bound()
         # remove step on block
@@ -125,8 +127,8 @@ class Friendly(Token):
             # remove killed by friendly
             self.remove_friendly_fire(game)
 
+    # select a random valid position to move
     def random_move(self, game):
-        # try kill self first
         self.potential_move(True, self.cord, game)
         if len(self.potential_move_list) == 0:
             # dead end
@@ -134,26 +136,26 @@ class Friendly(Token):
         else:
             move = random.choice(self.potential_move_list)
             game.next_move_dict[self] = move
+            return 1
 
     # find the path through A* algorithm
     def next_move(self, game):
         path = []
-        budget = 10
+        budget = 12
         pq = PriorityQueue()
         node = self.cord
 
         self.potential_move(True, node, game)
         for move in self.potential_move_list:
             new_path = [move]
-            priority = 1 + Friendly.dist_to(move, self.target)
+            priority = 1 + dist_to(move, self.target)
             pq.put((priority, new_path))
 
         while not pq.empty():
             path = pq.get()[1]
             if len(path) > budget:
                 # over budget may be a useless token
-                self.random_move(game)
-                return 1
+                return self.random_move(game)
             node = path[-1]
             if node == self.target.cord:
                 # found
@@ -163,10 +165,10 @@ class Friendly(Token):
             for move in self.potential_move_list:
                 new_path = path.copy()
                 new_path.append(move)
-                priority = len(new_path) + Friendly.dist_to(move, self.target)
+                priority = len(new_path) + dist_to(move, self.target)
                 pq.put((priority, new_path))
         # dead end
-        self.random_move(game)
+        return -1
 
     def act(self, game):
         if not self.active:

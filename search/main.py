@@ -1,20 +1,12 @@
 """
 COMP30024 Artificial Intelligence, Semester 1, 2021
 Project Part A: Searching
-
-This script contains the entry point to the program (the code in
-`__main__.py` calls `main()`). Your solution starts here!
 """
+# writen by Lingyuan Jin ID:1020657 and Jiachen Li 1068299
 
 import sys
 import json
 import time
-
-# If you want to separate your code into separate files, put them
-# inside the `search` directory (like this one and `util.py`) and
-# then import from them like this:
-
-
 from search.game import Game
 
 
