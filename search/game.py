@@ -3,7 +3,6 @@ from itertools import permutations
 from search.util import print_slide, print_swing, print_board
 from search.token import Friendly, Enemy, Block
 
-
 class Game:
     def __init__(self, data):
         self.next_move_dict = {}
@@ -12,7 +11,7 @@ class Game:
         self.block_list = []
         self.turn = 0
         self.init_data(data)
-        self.print_game()
+        # self.print_game()
 
     # read json file
     def init_data(self, data):
@@ -51,28 +50,28 @@ class Game:
                 return -1
         return 0
 
-    def print_game(self):
-        board_dict = {}
-        for friendly in self.friendly_list:
-            if friendly.active:
-                cord = friendly.cord
-                if (cord in board_dict):
-                    board_dict[cord] += friendly.symbol.upper()
-                else:
-                    board_dict[cord] = friendly.symbol.upper()
-        for enemy in self.enemy_list:
-            if enemy.active:
-                cord = enemy.cord
-                if (cord in board_dict):
-                    board_dict[cord] += ('(' + enemy.symbol + ')')
-                else:
-                    board_dict[cord] = ('(' + enemy.symbol + ')')
-        for block in self.block_list:
-            if (block.cord in board_dict):
-                board_dict[block.cord] += ('X')
-            else:
-                board_dict[block.cord] = ('X')
-        print_board(board_dict, str(self.turn))
+    # def print_game(self):
+    #     board_dict = {}
+    #     for friendly in self.friendly_list:
+    #         if friendly.active:
+    #             cord = friendly.cord
+    #             if (cord in board_dict):
+    #                 board_dict[cord] += friendly.symbol.upper()
+    #             else:
+    #                 board_dict[cord] = friendly.symbol.upper()
+    #     for enemy in self.enemy_list:
+    #         if enemy.active:
+    #             cord = enemy.cord
+    #             if (cord in board_dict):
+    #                 board_dict[cord] += ('(' + enemy.symbol + ')')
+    #             else:
+    #                 board_dict[cord] = ('(' + enemy.symbol + ')')
+    #     for block in self.block_list:
+    #         if (block.cord in board_dict):
+    #             board_dict[block.cord] += ('X')
+    #         else:
+    #             board_dict[block.cord] = ('X')
+    #     print_board(board_dict, str(self.turn))
 
     # print the move
     def apply_move(self):
@@ -95,7 +94,7 @@ class Game:
                 if token != friendly and move == friendly_move:
                     if token.can_defeat(friendly) == -1:
                         token.active = False
-        self.print_game()
+        # self.print_game()
         self.next_move_dict = {}
 
     # update the attribute of game

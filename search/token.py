@@ -2,12 +2,12 @@
 import random
 from queue import PriorityQueue
 
-
 # calculate the Euclidean distance of two tokens
 def dist_to(self, enemy):
     (r_o, q_o) = self
     (r_e, q_e) = enemy.cord
     return max(abs(r_e - r_o), abs(q_e - q_o), abs(q_o - q_e + r_o - r_e))
+
 
 class Token:
     def __init__(self, symbol, cord):
@@ -169,6 +169,7 @@ class Friendly(Token):
                 pq.put((priority, new_path))
         # dead end
         return -1
+
 
     def act(self, game):
         if not self.active:
